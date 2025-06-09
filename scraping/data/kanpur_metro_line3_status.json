@@ -1,0 +1,372 @@
+{
+  "IIT Kanpur": {
+    "id": 25,
+    "st_code": "IITK",
+    "st_name": "IIT KANPUR",
+    "st_image": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Image_Hero_D99eRwt.png"
+    },
+    "st_image_small": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Rectangle_2202_vziuifr_JaaL9Kn.png"
+    },
+    "st_status": [],
+    "st_key_info": []
+  },
+  "Kalyanpur": {
+    "id": 26,
+    "st_code": "KLNM",
+    "st_name": "KALYANPUR METRO",
+    "st_image": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Image_Hero_F9OFf9l.png"
+    },
+    "st_image_small": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Rectangle_2202_vziuifr_INntWiN.png"
+    },
+    "st_status": [],
+    "st_key_info": []
+  },
+  "SPM Hospital": {
+    "id": 27,
+    "st_code": "SPMH",
+    "st_name": "SPM HOSPITAL",
+    "st_image": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Image_Hero_HR5j5pz.png"
+    },
+    "st_image_small": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Rectangle_2202_vziuifr_0pmPFkB.png"
+    },
+    "st_status": [],
+    "st_key_info": []
+  },
+  "Vishwavidyalaya": {
+    "id": 28,
+    "st_code": "VWLM",
+    "st_name": "VISHWAVIDYALAYA METRO",
+    "st_image": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Image_Hero_N273Ca5.png"
+    },
+    "st_image_small": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Rectangle_2202_vziuifr_Zs8IwQ6.png"
+    },
+    "st_status": [],
+    "st_key_info": []
+  },
+  "Gurudev Chauraha": {
+    "id": 29,
+    "st_code": "GDCH",
+    "st_name": "GURUDEV CHAURAHA",
+    "st_image": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Image_Hero_RSka88R.png"
+    },
+    "st_image_small": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Rectangle_2202_vziuifr_yo5Bd88.png"
+    },
+    "st_status": [],
+    "st_key_info": []
+  },
+  "Geeta Nagar": {
+    "id": 30,
+    "st_code": "GTNG",
+    "st_name": "GEETA NAGAR",
+    "st_image": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Image_Hero_sBgAtNt.png"
+    },
+    "st_image_small": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Rectangle_2202_vziuifr_e6WB6yb.png"
+    },
+    "st_status": [],
+    "st_key_info": []
+  },
+  "Rawatpur": {
+    "id": 31,
+    "st_code": "RWPM",
+    "st_name": "RAWATPUR METRO",
+    "st_image": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Image_Hero_fgRsz00.png"
+    },
+    "st_image_small": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Rectangle_2202_vziuifr_6Kt7rex.png"
+    },
+    "st_status": [],
+    "st_key_info": []
+  },
+  "LLR Hospital": {
+    "id": 32,
+    "st_code": "LLRH",
+    "st_name": "LLR HOSPITAL",
+    "st_image": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Image_Hero_gGbcynB.png"
+    },
+    "st_image_small": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Rectangle_2202_vziuifr_ZXEux4K.png"
+    },
+    "st_status": [],
+    "st_key_info": []
+  },
+  "Moti Jheel": {
+    "id": 33,
+    "st_code": "MTJM",
+    "st_name": "MOTIJHEEL METRO",
+    "st_image": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Image_Hero_nJbEOHx.png"
+    },
+    "st_image_small": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Rectangle_2202_vziuifr_ZCKUfJA.png"
+    },
+    "st_status": [],
+    "st_key_info": []
+  },
+  "Chunniganj": {
+    "id": 37,
+    "st_code": "CHGJ",
+    "st_name": "CHUNNI GANJ",
+    "st_image": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Image_Hero_4GclM4Z.png"
+    },
+    "st_image_small": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Rectangle_2202_vziuifr_AHz076W.png"
+    },
+    "st_status": [],
+    "st_key_info": [
+      {
+        "name": "Divyang Friendly Station",
+        "class_name": "Divyang",
+        "image": {
+          "title": "",
+          "file": "https://upmrcl-media.s3.amazonaws.com/media/images/accessible_hsEdlzx_nVjjDF3.png"
+        }
+      },
+      {
+        "name": "Lift / Escalator Available",
+        "class_name": "Lift",
+        "image": {
+          "title": "",
+          "file": "https://upmrcl-media.s3.amazonaws.com/media/images/escalator_fH6BZeS_oDqmyn6.png"
+        }
+      },
+      {
+        "name": "Parking Available",
+        "class_name": "Parking",
+        "image": {
+          "title": "",
+          "file": "https://upmrcl-media.s3.amazonaws.com/media/images/local_parking_3F12UYm_1YKgGZR.png"
+        }
+      }
+    ]
+  },
+  "Naveen Market": {
+    "id": 38,
+    "st_code": "NMKT",
+    "st_name": "NAVEEN MARKET",
+    "st_image": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Image_Hero_Kogz1nK.png"
+    },
+    "st_image_small": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Rectangle_2202_vziuifr_Kik3aLU.png"
+    },
+    "st_status": [],
+    "st_key_info": [
+      {
+        "name": "Divyang Friendly Station",
+        "class_name": "Divyang",
+        "image": {
+          "title": "",
+          "file": "https://upmrcl-media.s3.amazonaws.com/media/images/accessible_hsEdlzx_nVjjDF3.png"
+        }
+      },
+      {
+        "name": "Lift / Escalator Available",
+        "class_name": "Lift",
+        "image": {
+          "title": "",
+          "file": "https://upmrcl-media.s3.amazonaws.com/media/images/escalator_fH6BZeS_oDqmyn6.png"
+        }
+      },
+      {
+        "name": "Parking Available",
+        "class_name": "Parking",
+        "image": {
+          "title": "",
+          "file": "https://upmrcl-media.s3.amazonaws.com/media/images/local_parking_3F12UYm_1YKgGZR.png"
+        }
+      }
+    ]
+  },
+  "Bada Chauraha": {
+    "id": 39,
+    "st_code": "BDCH",
+    "st_name": "BADA CHAURAHA",
+    "st_image": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Image_Hero_VBREdWm.png"
+    },
+    "st_image_small": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Rectangle_2202_vziuifr_xCHVUqO.png"
+    },
+    "st_status": [],
+    "st_key_info": [
+      {
+        "name": "Divyang Friendly Station",
+        "class_name": "Divyang",
+        "image": {
+          "title": "",
+          "file": "https://upmrcl-media.s3.amazonaws.com/media/images/accessible_hsEdlzx_nVjjDF3.png"
+        }
+      },
+      {
+        "name": "Lift / Escalator Available",
+        "class_name": "Lift",
+        "image": {
+          "title": "",
+          "file": "https://upmrcl-media.s3.amazonaws.com/media/images/escalator_fH6BZeS_oDqmyn6.png"
+        }
+      },
+      {
+        "name": "Parking Available",
+        "class_name": "Parking",
+        "image": {
+          "title": "",
+          "file": "https://upmrcl-media.s3.amazonaws.com/media/images/local_parking_3F12UYm_1YKgGZR.png"
+        }
+      }
+    ]
+  },
+  "Nayaganj": {
+    "id": 40,
+    "st_code": "NYGJ",
+    "st_name": "NAYA GANJ",
+    "st_image": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Image_Hero_nBD0SWp.png"
+    },
+    "st_image_small": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Rectangle_2202_vziuifr_Q4uaPlj.png"
+    },
+    "st_status": [],
+    "st_key_info": [
+      {
+        "name": "Divyang Friendly Station",
+        "class_name": "Divyang",
+        "image": {
+          "title": "",
+          "file": "https://upmrcl-media.s3.amazonaws.com/media/images/accessible_hsEdlzx_nVjjDF3.png"
+        }
+      },
+      {
+        "name": "Lift / Escalator Available",
+        "class_name": "Lift",
+        "image": {
+          "title": "",
+          "file": "https://upmrcl-media.s3.amazonaws.com/media/images/escalator_fH6BZeS_oDqmyn6.png"
+        }
+      },
+      {
+        "name": "Parking Available",
+        "class_name": "Parking",
+        "image": {
+          "title": "",
+          "file": "https://upmrcl-media.s3.amazonaws.com/media/images/local_parking_3F12UYm_1YKgGZR.png"
+        }
+      }
+    ]
+  },
+  "Kanpur Central": {
+    "id": 41,
+    "st_code": "KNCM",
+    "st_name": "KANPUR CENTRAL",
+    "st_image": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Image_Hero.png"
+    },
+    "st_image_small": {
+      "title": "",
+      "file": "https://upmrcl-media.s3.amazonaws.com/media/images/Rectangle_2202_vziuifr.png"
+    },
+    "st_status": [],
+    "st_key_info": [
+      {
+        "name": "Divyang Friendly Station",
+        "class_name": "Divyang",
+        "image": {
+          "title": "",
+          "file": "https://upmrcl-media.s3.amazonaws.com/media/images/accessible_hsEdlzx_nVjjDF3.png"
+        }
+      },
+      {
+        "name": "Lift / Escalator Available",
+        "class_name": "Lift",
+        "image": {
+          "title": "",
+          "file": "https://upmrcl-media.s3.amazonaws.com/media/images/escalator_fH6BZeS_oDqmyn6.png"
+        }
+      },
+      {
+        "name": "Parking Available",
+        "class_name": "Parking",
+        "image": {
+          "title": "",
+          "file": "https://upmrcl-media.s3.amazonaws.com/media/images/local_parking_3F12UYm_1YKgGZR.png"
+        }
+      }
+    ]
+  },
+  "Jhakarkati Bus Terminal": {
+    "st_code": "",
+    "st_name": "",
+    "st_key_info": []
+  },
+  "Transport Nagar": {
+    "st_code": "",
+    "st_name": "",
+    "st_key_info": []
+  },
+  "Baradevi": {
+    "st_code": "",
+    "st_name": "",
+    "st_key_info": []
+  },
+  "Kidwai Nagar": {
+    "st_code": "",
+    "st_name": "",
+    "st_key_info": []
+  },
+  "Vasant Vihar": {
+    "st_code": "",
+    "st_name": "",
+    "st_key_info": []
+  },
+  "Baudh Nagar": {
+    "st_code": "",
+    "st_name": "",
+    "st_key_info": []
+  },
+  "Naubasta": {
+    "st_code": "",
+    "st_name": "",
+    "st_key_info": []
+  }
+}

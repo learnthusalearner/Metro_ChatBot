@@ -42,7 +42,7 @@ def split_chunks_with_metadata(chunks_with_metadata):
     for text, metadata in chunks_with_metadata:
         try:
             joined_text = translate_to_english(text)
-            
+             
             # Combine section-based and recursive splitting
             chunks = split_by_sections(joined_text)
             splitter = RecursiveCharacterTextSplitter(
@@ -64,13 +64,24 @@ def split_chunks_with_metadata(chunks_with_metadata):
 
 
 def split_by_sections(text):
-    """Splits the text by regex-defined logical sections."""
-    # Try all patterns defined above
+    """Split text using patterns like headings or paragraph breaks."""
+    
     for pattern in SECTION_SPLITTERS:
-        splits = re.split(pattern, text, flags=re.IGNORECASE)
-        if len(splits) > 1:
-            return [s.strip() for s in splits if s.strip()]
+        # Try to split the text using the current pattern
+        sections = re.split(pattern, text, flags=re.IGNORECASE)
+        
+        # If the split worked (more than one part), clean and return it
+        if len(sections) > 1:
+            cleaned_sections = []
+            for section in sections:
+                section = section.strip()
+                if section:  # only keep non-empty sections
+                    cleaned_sections.append(section)
+            return cleaned_sections
+
+    # If no patterns worked, return the whole text as one section
     return [text.strip()]
+
 
 
 @st.cache_resource

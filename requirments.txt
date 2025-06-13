@@ -1,0 +1,11 @@
+ollama==0.1.7
+streamlit
+python-dotenv
+langchain
+langchain-community
+langchain_ollama==0.0.6
+faiss-cpu
+whisper
+deep-translator
+openai-whisper  # Optional, some setups require this for `whisper`
+htmltemplate  # Custom or local module – remove if it's yours

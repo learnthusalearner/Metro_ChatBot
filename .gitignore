@@ -1,3 +1,5 @@
 venv
 .vscode
 __pycache__
+audio_Q
+vectorstore_index

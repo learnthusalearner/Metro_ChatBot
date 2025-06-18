@@ -1,11 +1,10 @@
-ollama==0.1.7
+ollama==0.3.0
 streamlit
 python-dotenv
-langchain
-langchain-community
+langchain==0.3.25
+langchain-community==0.3.25
 langchain_ollama==0.1.3
 faiss-cpu
-whisper
 deep-translator
 openai-whisper  # Optional, some setups require this for `whisper`
 htmltemplate  # Custom or local module – remove if it's yours

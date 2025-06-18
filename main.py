@@ -10,7 +10,7 @@ from langchain_ollama import OllamaEmbeddings, ChatOllama
 import whisper
 import json
 from deep_translator import GoogleTranslator
-from htmltemplate import css, bot_template, user_template
+from htmltemplate import css, bot_template, user_template,source_template
 
 import re
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -93,6 +93,7 @@ def get_vectorstore(text_chunks, metadatas):
             VECTORSTORE_DIR,
             embeddings,
             allow_dangerous_deserialization=True
+            #used when u are "You're loading untrusted files (e.g. from a user upload or public source)."
         )
 
     vectorstore = FAISS.from_texts(
@@ -110,24 +111,26 @@ def get_conversation_chain(_vectorstore):
     llm = ChatOllama(model="llama3", temperature=0.5)
     memory = ConversationBufferMemory(
         memory_key='chat_history',
-        return_messages=True
+        return_messages=True,
+        output_key='answer'
     )
     return ConversationalRetrievalChain.from_llm(
         llm=llm,
         retriever=_vectorstore.as_retriever(),
         memory=memory,
-        return_source_documents=False,
+        return_source_documents=True,
+        #Controls whether the chatbot returns just the answer i.e false or the answer + source documents. ie true
         output_key="answer"
     )
 
 
 def transcribe(audio_path: str) -> str:
     try:
-        model = whisper.load_model("large")
+        model = whisper.load_model("medium")
         result = model.transcribe(audio_path)
         return translate_to_english(result["text"])
     except FileNotFoundError:
-        st.error("🚨 FFmpeg not found! Whisper uses FFmpeg under the hood. Please install FFmpeg and add its `bin/` folder to your PATH.")
+        st.error("🚨")
         raise
 
 
@@ -135,13 +138,11 @@ def handle_userinput(user_question: str):
     # Check if the input is a path to an audio file
     if user_question.lower().endswith((".mp3", ".wav", ".m4a")):
         try:
-            # Transcribe and translate to English
             user_question = transcribe(user_question)
         except Exception as e:
             st.error(f"Transcription error: {e}")
             return
     else:
-        # For typed text, translate if needed (optional)
         user_question = translate_to_english(user_question)
 
     # Invoke the chatbot
@@ -157,15 +158,15 @@ def handle_userinput(user_question: str):
     st.write(user_template.replace("{{MSG}}", user_question), unsafe_allow_html=True)
     st.write(bot_template.replace("{{MSG}}", answer), unsafe_allow_html=True)
 
-    # Show document sources
-    docs = st.session_state.conversation.retriever.get_relevant_documents(user_question)
-    for doc in docs:
-        meta = doc.metadata
-        st.markdown(
-            f"<div style='font-size: small; color: gray;'>"
-            f"Source: {meta.get('source','Unknown')} </div>",
-            unsafe_allow_html=True
-        )
+    # ✅ Display source documents
+    if "source_documents" in result:
+        docs = result["source_documents"]
+        seen = set()
+        for doc in docs:
+            source = doc.metadata.get('source', 'Unknown')
+            if source not in seen:
+                seen.add(source)
+                st.markdown(source_template.replace("{{SOURCE}}", source), unsafe_allow_html=True)
 
 
 def read_file_contents(file):
@@ -202,18 +203,18 @@ def read_file_contents(file):
         grouped_text = translate_to_english(grouped_text)
         return grouped_text, {"source": file.name}
 
-    elif filename.endswith(".json"):
-        try:
-            data = json.load(file)
-            file.seek(0)
-            text = json.dumps(data, indent=2)
-        except json.JSONDecodeError:
-            text = content
-    else:
-        text = content
+    # elif filename.endswith(".json"):
+    #     try:
+    #         data = json.load(file)
+    #         file.seek(0)
+    #         text = json.dumps(data, indent=2)
+    #     except json.JSONDecodeError:
+    #         text = content
+    # else:
+    #     text = content
 
-    text = translate_to_english(text)
-    return text, {"source": file.name}
+    # text = translate_to_english(text)
+    # return text, {"source": file.name}
 
 
 def main():

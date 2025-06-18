@@ -38,3 +38,9 @@ bot_template = """
     <strong>Assistant:</strong><br>{{MSG}}
 </div>
 """
+
+source_template = """
+<div style='font-size: small; color: gray; margin-top: 5px;'>
+    <b>Source:</b> {{SOURCE}}
+</div>
+"""

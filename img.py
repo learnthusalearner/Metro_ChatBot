@@ -47,4 +47,4 @@ def display_connection_image(code1: str, code2: str, folder_path: str = "loc_ima
             st.image(Image.open(image_path), caption=f"{station_codes[code1]} ↔ {station_codes[code2]}")
             return
 
-    st.warning("⚠️ No image found for the selected station pair.")
+    st.warning("⚠️ Work under process ...")

@@ -1,141 +1,84 @@
 import os
 import tempfile
 import streamlit as st
-from dotenv import load_dotenv
-from langchain.text_splitter import CharacterTextSplitter
+import openai
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
-from langchain_ollama import OllamaEmbeddings, ChatOllama
-import whisper
-import json
-from deep_translator import GoogleTranslator
-from htmltemplate import css, bot_template, user_template,source_template
-
-import re
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-
+from langchain.chat_models import ChatOpenAI
+from langchain.embeddings import OpenAIEmbeddings
+from googletrans import Translator
+from htmltemplate import css, bot_template, user_template, source_template
 from img import display_connection_image, get_station_codes
+import json
+import re
 
-os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-# os.environ["STREAMLIT_WATCHER_TYPE"] = "none"
+VECTORSTORE_DIR = "/tmp/vectorstore"
 
-VECTORSTORE_DIR = "vectorstore_index"
-
+# Translation
 def translate_to_english(text: str) -> str:
     try:
-        return GoogleTranslator(source='auto', target='en').translate(text)
+        return Translator().translate(text, src='auto', dest='en').text
     except Exception as e:
         print(f"Translation error: {e}")
         return text
 
+# Section patterns
 SECTION_SPLITTERS = [
-    r"\n\s*(Route summary:|FAQs::|NETWORK/LINE:|Token Fare:|Amenities include:|Station Gates:|More Routes from.*?)\s*\n",  # common headers
-    r"(?<=\n)(?=\d+\.\s)",  # numbered FAQ or list
-    r"\n\n+",  # fallback to paragraph breaks
+    r"\n\s*(Route summary:|FAQs::|NETWORK/LINE:|Token Fare:|Amenities include:|Station Gates:|More Routes from.*?)\s*\n",
+    r"(?<=\n)(?=\d+\.\s)", r"\n\n+"
 ]
 
 @st.cache_data
 def split_chunks_with_metadata(chunks_with_metadata):
     texts, metadatas = [], []
-
     for text, metadata in chunks_with_metadata:
         try:
             joined_text = translate_to_english(text)
-             
-            # Combine section-based and recursive splitting
             chunks = split_by_sections(joined_text)
-            splitter = RecursiveCharacterTextSplitter(
-                chunk_size=1500,
-                chunk_overlap=150,
-                length_function=len
-            )
-
+            splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=150)
             for section in chunks:
                 for chunk in splitter.split_text(section):
                     if chunk.strip():
                         texts.append(chunk.strip())
                         metadatas.append(metadata)
-                        
         except Exception as e:
             print(f"Error processing chunk: {e}")
-
     return texts, metadatas
 
-
 def split_by_sections(text):
-    """Split text using patterns like headings or paragraph breaks."""
-    
     for pattern in SECTION_SPLITTERS:
-        # Try to split the text using the current pattern
         sections = re.split(pattern, text, flags=re.IGNORECASE)
-        
-        # If the split worked (more than one part), clean and return it
         if len(sections) > 1:
-            cleaned_sections = []
-            for section in sections:
-                section = section.strip()
-                if section:  # only keep non-empty sections
-                    cleaned_sections.append(section)
-            return cleaned_sections
-
-    # If no patterns worked, return the whole text as one section
+            return [s.strip() for s in sections if s.strip()]
     return [text.strip()]
-
-
 
 @st.cache_resource
 def get_vectorstore(text_chunks, metadatas):
-    embeddings = OllamaEmbeddings(model="all-minilm")
-
+    embeddings = OpenAIEmbeddings()
     if os.path.exists(VECTORSTORE_DIR):
-        return FAISS.load_local(
-            VECTORSTORE_DIR,
-            embeddings,
-            allow_dangerous_deserialization=True
-            #used when u are "You're loading untrusted files (e.g. from a user upload or public source)."
-        )
-
-    vectorstore = FAISS.from_texts(
-        texts=text_chunks,
-        embedding=embeddings,
-        metadatas=metadatas
-    )
-
-    # Save in a structured directory
+        return FAISS.load_local(VECTORSTORE_DIR, embeddings, allow_dangerous_deserialization=True)
+    vectorstore = FAISS.from_texts(text_chunks, embeddings, metadatas)
     vectorstore.save_local(VECTORSTORE_DIR)
     return vectorstore
 
 @st.cache_resource
 def get_conversation_chain(_vectorstore):
-    llm = ChatOllama(model="llama3", temperature=0.5)
-    memory = ConversationBufferMemory(
-        memory_key='chat_history',
-        return_messages=True,
-        output_key='answer'
-    )
-    return ConversationalRetrievalChain.from_llm(
-        llm=llm,
-        retriever=_vectorstore.as_retriever(),
-        memory=memory,
-        return_source_documents=True,
-        #Controls whether the chatbot returns just the answer i.e false or the answer + source documents. ie true
-        output_key="answer"
-    )
-
+    llm = ChatOpenAI(temperature=0.5, model_name="gpt-3.5-turbo")
+    memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True, output_key='answer')
+    return ConversationalRetrievalChain.from_llm(llm=llm, retriever=_vectorstore.as_retriever(), memory=memory, return_source_documents=True, output_key="answer")
 
 def transcribe(audio_path: str) -> str:
     try:
-        model = whisper.load_model("medium")
-        result = model.transcribe(audio_path)
-        return translate_to_english(result["text"])
-    except FileNotFoundError:
-        st.error("🚨")
+        with open(audio_path, "rb") as f:
+            result = openai.Audio.transcribe("whisper-1", f)
+            return translate_to_english(result["text"])
+    except Exception as e:
+        st.error(f"Transcription error: {e}")
         raise
 
-
 def handle_userinput(user_question: str):
-    # Check if the input is a path to an audio file
     if user_question.lower().endswith((".mp3", ".wav", ".m4a")):
         try:
             user_question = transcribe(user_question)
@@ -145,29 +88,23 @@ def handle_userinput(user_question: str):
     else:
         user_question = translate_to_english(user_question)
 
-    # Invoke the chatbot
     result = st.session_state.conversation.invoke({"question": user_question})
     answer = result["answer"]
 
-    # Store conversation history
     if "qa_history" not in st.session_state:
         st.session_state.qa_history = []
     st.session_state.qa_history.append((user_question, answer))
 
-    # Display conversation
     st.write(user_template.replace("{{MSG}}", user_question), unsafe_allow_html=True)
     st.write(bot_template.replace("{{MSG}}", answer), unsafe_allow_html=True)
 
-    # ✅ Display source documents
     if "source_documents" in result:
-        docs = result["source_documents"]
         seen = set()
-        for doc in docs:
-            source = doc.metadata.get('source', 'Unknown')
+        for doc in result["source_documents"]:
+            source = doc.metadata.get("source", "Unknown")
             if source not in seen:
                 seen.add(source)
                 st.markdown(source_template.replace("{{SOURCE}}", source), unsafe_allow_html=True)
-
 
 def read_file_contents(file):
     filename = file.name.lower()
@@ -186,8 +123,8 @@ def read_file_contents(file):
             if not line:
                 continue
             if any(marker in line for marker in [
-                "Route summary", "Token Fare", "NETWORK/LINE", "First Metro", 
-                "Last Metro", "Station Gates", "Station Layout", "Train Frequency", 
+                "Route summary", "Token Fare", "NETWORK/LINE", "First Metro",
+                "Last Metro", "Station Gates", "Station Layout", "Train Frequency",
                 "Fare", "Time Limit", "Travel Time", "Total Stations", "FAQs::"
             ]):
                 if current_block:
@@ -195,41 +132,21 @@ def read_file_contents(file):
                 current_block = line + "\n"
             else:
                 current_block += line + "\n"
-
         if current_block:
             text_blocks.append(current_block.strip())
-
         grouped_text = "\n\n".join(text_blocks)
-        grouped_text = translate_to_english(grouped_text)
-        return grouped_text, {"source": file.name}
-
-    # elif filename.endswith(".json"):
-    #     try:
-    #         data = json.load(file)
-    #         file.seek(0)
-    #         text = json.dumps(data, indent=2)
-    #     except json.JSONDecodeError:
-    #         text = content
-    # else:
-    #     text = content
-
-    # text = translate_to_english(text)
-    # return text, {"source": file.name}
-
+        return translate_to_english(grouped_text), {"source": file.name}
 
 def main():
-    load_dotenv()
-    st.set_page_config(page_title="Metro_ChatBot")
-
+    st.set_page_config(page_title="Metro ChatBot")
     st.write(css, unsafe_allow_html=True)
 
     if "conversation" not in st.session_state:
         st.session_state.conversation = None
 
     st.title("Kanpur Metro ChatBot")
-    st.markdown("Chat with uploaded files. You can type or upload an audio file.")
+    st.markdown("Chat with uploaded files or ask questions via voice.")
 
-    # --- Chat Input Section ---
     col1, col2 = st.columns([4, 1])
     with col1:
         user_question = st.text_input("Enter your question:", key="user_input")
@@ -239,48 +156,35 @@ def main():
     if text_confirm and user_question and st.session_state.conversation:
         handle_userinput(user_question)
 
-    uploaded_audio = st.file_uploader(
-        "Upload an audio file (wav, mp3, m4a, aac, ogg):",
-        type=["wav", "mp3", "m4a", "aac", "ogg"]
-    )
+    uploaded_audio = st.file_uploader("Upload an audio file (wav, mp3, m4a, aac, ogg):", type=["wav", "mp3", "m4a", "aac", "ogg"])
     if uploaded_audio:
         st.audio(uploaded_audio)
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as f:
             f.write(uploaded_audio.getbuffer())
             temp_audio_path = f.name
-
         try:
             transcription = transcribe(temp_audio_path)
             st.success(f"Recognized: {transcription}")
-
             if st.button("Confirm Audio Query"):
                 if st.session_state.conversation:
                     handle_userinput(transcription)
         except Exception as e:
             st.error(f"Error during transcription: {e}")
 
-    # --- Sidebar: File Upload and Chat History ---
     with st.sidebar:
         st.header("Upload Data Files")
-        uploaded_files = st.file_uploader(
-            "Upload one or more files (JSON, TXT, etc.)",
-            accept_multiple_files=True,
-            type=None
-        )
-
+        uploaded_files = st.file_uploader("Upload one or more files (TXT only)", accept_multiple_files=True, type=["txt"])
         if st.button("Process") and uploaded_files:
             with st.spinner("Processing files..."):
                 chunks_with_metadata = []
                 for file in uploaded_files:
                     text, metadata = read_file_contents(file)
                     chunks_with_metadata.append((text, metadata))
-
                 texts, metas = split_chunks_with_metadata(chunks_with_metadata)
                 vectorstore = get_vectorstore(texts, metas)
                 st.session_state.conversation = get_conversation_chain(vectorstore)
                 st.session_state.qa_history = []
-
-            st.success("Files processed successfully. You can now chat.")
+            st.success("Files processed. You can chat now.")
 
         if "qa_history" in st.session_state and st.session_state.qa_history:
             st.divider()
@@ -289,7 +193,6 @@ def main():
                 with st.expander(f"Q{i}: {q}"):
                     st.markdown(a)
 
-        # --- Sidebar: Metro Route Image Viewer ---
         st.divider()
         st.subheader("Metro Route Image Viewer")
         station_codes = get_station_codes()
@@ -300,7 +203,6 @@ def main():
                 st.error("Please select two different stations.")
             else:
                 display_connection_image(code1, code2)
-
 
 if __name__ == "__main__":
     main()

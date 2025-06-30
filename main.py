@@ -17,10 +17,33 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 from img import display_connection_image, get_station_codes
 
+import numpy as np
+import time
+from scipy.io.wavfile import write as scipy_write
+
+#net search
+from langchain.retrievers.web_research import WebResearchRetriever
+from langchain import LLMChain, PromptTemplate
+from langchain.schema import Document
+from langchain_community.tools import DuckDuckGoSearchRun
+
+from duckduckgo_search import DDGS
+
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 # os.environ["STREAMLIT_WATCHER_TYPE"] = "none"
 
 VECTORSTORE_DIR = "vectorstore_index"
+
+def search_web(query: str, max_results: int = 1):
+    try:
+        with DDGS() as ddgs:
+            results = list(ddgs.text(query, max_results=max_results))
+            if results:
+                return results[0]['body'], results[0]['href']
+    except Exception as e:
+        print(f"Web search error: {e}")
+    return None, None
+
 
 def translate_to_english(text: str) -> str:
     try:
@@ -108,7 +131,7 @@ def get_vectorstore(text_chunks, metadatas):
 
 @st.cache_resource
 def get_conversation_chain(_vectorstore):
-    llm = ChatOllama(model="llama3", temperature=0.5)
+    llm = ChatOllama(model="llama3:8b", temperature=0.5)
     memory = ConversationBufferMemory(
         memory_key='chat_history',
         return_messages=True,
@@ -134,8 +157,19 @@ def transcribe(audio_path: str) -> str:
         raise
 
 
+def search_web(query: str, max_results: int = 1):
+    try:
+        with DDGS() as ddgs:
+            results = list(ddgs.text(query, max_results=max_results))
+            if results:
+                return results[0]['body'], results[0]['href']
+    except Exception as e:
+        print(f"Web search error: {e}")
+    return None, None
+
 def handle_userinput(user_question: str):
-    # Check if the input is a path to an audio file
+    original_question = user_question  # Save original user input
+
     if user_question.lower().endswith((".mp3", ".wav", ".m4a")):
         try:
             user_question = transcribe(user_question)
@@ -145,21 +179,62 @@ def handle_userinput(user_question: str):
     else:
         user_question = translate_to_english(user_question)
 
-    # Invoke the chatbot
-    result = st.session_state.conversation.invoke({"question": user_question})
-    answer = result["answer"]
+    with st.spinner("⏳ Thinking..."):
+        countdown_placeholder = st.empty()
+        for i in range(3, 0, -1):
+            countdown_placeholder.markdown(f"⏳ Generating answer in **{i}** seconds...")
+            time.sleep(1)
+        countdown_placeholder.empty()
 
-    # Store conversation history
+    result = st.session_state.conversation.invoke({"question": user_question})
+    answer_en = result["answer"]
+
+    is_web_fallback = False
+
+    # 🔁 Web fallback
+    if any(phrase in answer_en.lower() for phrase in ["i apologize", "i'm not sure", "don't know", "unable to find"]):
+        web_answer, web_url = search_web(user_question)
+        if web_answer:
+            answer_en = f"🌐 *This answer is fetched from the internet as it's not in my local data.*\n\n{web_answer}"
+            is_web_fallback = True
+
+    selected_lang = st.session_state.get("selected_language", "English")
+
+    if selected_lang == "Hindi":
+        try:
+            answer_translated = translate_to_hindi(answer_en)
+        except Exception as e:
+            st.warning(f"Hindi translation failed: {e}")
+            answer_translated = answer_en
+    else:
+        answer_translated = answer_en
+
+    # ✅ Display both
+    st.write(user_template.replace("{{MSG}}", original_question), unsafe_allow_html=True)
+    st.write(bot_template.replace("{{MSG}}", answer_translated), unsafe_allow_html=True)
+
+    # ✅ Save displayed form to history
     if "qa_history" not in st.session_state:
         st.session_state.qa_history = []
-    st.session_state.qa_history.append((user_question, answer))
+    st.session_state.qa_history.append((original_question, answer_translated))
 
-    # Display conversation
-    st.write(user_template.replace("{{MSG}}", user_question), unsafe_allow_html=True)
-    st.write(bot_template.replace("{{MSG}}", answer), unsafe_allow_html=True)
+    # 🔊 Speak answer
+    try:
+        from gtts import gTTS
+        import base64
 
-    # ✅ Display source documents
-    if "source_documents" in result:
+        lang_code = "hi" if selected_lang == "Hindi" else "en"
+        tts = gTTS(answer_translated, lang=lang_code)
+        tts.save("audio_Q/response.mp3")
+
+        with open("response.mp3", "rb") as audio_file:
+            audio_bytes = audio_file.read()
+            st.audio(audio_bytes, format="audio/mp3")
+    except Exception as e:
+        st.warning(f"Audio generation failed: {e}")
+
+    # ✅ Show source if local, else say "Internet"
+    if not is_web_fallback and "source_documents" in result:
         docs = result["source_documents"]
         seen = set()
         for doc in docs:
@@ -167,6 +242,8 @@ def handle_userinput(user_question: str):
             if source not in seen:
                 seen.add(source)
                 st.markdown(source_template.replace("{{SOURCE}}", source), unsafe_allow_html=True)
+    elif is_web_fallback:
+        st.markdown(source_template.replace("{{SOURCE}}", "Internet"), unsafe_allow_html=True)
 
 
 def read_file_contents(file):
@@ -201,7 +278,7 @@ def read_file_contents(file):
 
         grouped_text = "\n\n".join(text_blocks)
         grouped_text = translate_to_english(grouped_text)
-        return grouped_text, {"source": file.name}
+        return grouped_text, {"source": file.name }
 
     # elif filename.endswith(".json"):
     #     try:
@@ -217,6 +294,50 @@ def read_file_contents(file):
     # return text, {"source": file.name}
 
 
+
+def translate_to_hindi(text: str) -> str:
+    try:
+        return GoogleTranslator(source='auto', target='hi').translate(text)
+    except Exception as e:
+        print(f"Hindi translation error: {e}")
+        return text
+
+
+def save_audio_to_audio_Q(data: np.ndarray, samplerate: int = 16000) -> str:
+    os.makedirs("audio_Q", exist_ok=True)
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    filepath = os.path.join("audio_Q", f"mic_query_{timestamp}.wav")
+    if data.dtype != np.float32:
+        data = data.astype(np.float32)
+    data = np.int16(data / np.max(np.abs(data)) * 32767)
+    scipy_write(filepath, samplerate, data)
+    return filepath
+
+def get_web_fallback():
+    search_tool = DuckDuckGoSearchRun()
+    
+    prompt = PromptTemplate.from_template("""
+    Based on the web results below, answer the user question truthfully:
+    
+    {context}
+    
+    Question: {question}
+    Answer:
+    """)
+    
+    llm_chain = LLMChain(
+        llm=ChatOllama(model="llama3:8b"),
+        prompt=prompt
+    )
+    
+    retriever = WebResearchRetriever.from_llm_and_tools(
+        llm_chain=llm_chain,
+        tools=[search_tool],
+        num_search_results=2
+    )
+    return retriever
+
+
 def main():
     load_dotenv()
     st.set_page_config(page_title="Metro_ChatBot")
@@ -225,20 +346,62 @@ def main():
 
     if "conversation" not in st.session_state:
         st.session_state.conversation = None
+    if "qa_history" not in st.session_state:
+        st.session_state.qa_history = []
 
     st.title("Kanpur Metro ChatBot")
-    st.markdown("Chat with uploaded files. You can type or upload an audio file.")
+    st.markdown("Chat with uploaded files. You can type, upload an audio file, or record with your mic.")
+
+        # Set default language in session state
+    if "selected_language" not in st.session_state:
+        st.session_state.selected_language = "English"
+
+    # Language selector dropdown (global)
+    st.session_state.selected_language = st.selectbox(
+        "🔀 Select language for answer:",
+        ["English", "Hindi"],
+        key="language_selector"
+    )
+
 
     # --- Chat Input Section ---
-    col1, col2 = st.columns([4, 1])
+    col1, col2, col3 = st.columns([3, 1, 1])
     with col1:
         user_question = st.text_input("Enter your question:", key="user_input")
     with col2:
         text_confirm = st.button("Confirm Text Query")
+    with col3:
+        mic_trigger = st.button("🎤 Record Mic")
 
     if text_confirm and user_question and st.session_state.conversation:
         handle_userinput(user_question)
 
+    # ✅🎙️ MIC RECORDING SECTION (AUTO 10 SEC, INTEGRATED WITH COL3 BUTTON)
+    if mic_trigger:
+        fs = 16000
+        duration = 10  # seconds
+
+        st.info("🎙️ Listening... Please speak clearly into the mic.")
+
+        import sounddevice as sd
+        recording = sd.rec(int(duration * fs), samplerate=fs, channels=1, dtype='float32')
+        sd.wait()
+
+        audio_path = save_audio_to_audio_Q(recording, fs)
+        st.audio(audio_path)
+        st.info("🔍 Transcribing your query...")
+
+        try:
+            mic_transcription = transcribe(audio_path)
+            st.success(f"📝 Recognized: {mic_transcription}")
+
+            if st.button("✅ Use This Mic Query"):
+                if st.session_state.conversation:
+                    handle_userinput(mic_transcription)
+        except Exception as e:
+            st.error(f"❌ Mic transcription error: {e}")
+
+    # --- File-based Audio Upload Section ---
     uploaded_audio = st.file_uploader(
         "Upload an audio file (wav, mp3, m4a, aac, ogg):",
         type=["wav", "mp3", "m4a", "aac", "ogg"]
@@ -288,7 +451,13 @@ def main():
             for i, (q, a) in enumerate(reversed(st.session_state.qa_history), 1):
                 with st.expander(f"Q{i}: {q}"):
                     st.markdown(a)
-
+            chat_history_text = "\n\n".join([f"Q: {q}\nA: {a}" for q, a in st.session_state.qa_history])
+            st.download_button(
+                label="Download as .txt",
+                data=chat_history_text,
+                file_name="chat_history.txt",
+                mime="text/plain"
+            )
         # --- Sidebar: Metro Route Image Viewer ---
         st.divider()
         st.subheader("Metro Route Image Viewer")
@@ -304,3 +473,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+

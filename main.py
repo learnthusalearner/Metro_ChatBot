@@ -22,27 +22,27 @@ import time
 from scipy.io.wavfile import write as scipy_write
 
 #net search
-from langchain.retrievers.web_research import WebResearchRetriever
-from langchain import LLMChain, PromptTemplate
-from langchain.schema import Document
-from langchain_community.tools import DuckDuckGoSearchRun
+# from langchain.retrievers.web_research import WebResearchRetriever
+# from langchain import LLMChain, PromptTemplate
+# from langchain.schema import Document
+# from langchain_community.tools import DuckDuckGoSearchRun
 
-from duckduckgo_search import DDGS
+# from duckduckgo_search import DDGS
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 # os.environ["STREAMLIT_WATCHER_TYPE"] = "none"
 
 VECTORSTORE_DIR = "vectorstore_index"
 
-def search_web(query: str, max_results: int = 1):
-    try:
-        with DDGS() as ddgs:
-            results = list(ddgs.text(query, max_results=max_results))
-            if results:
-                return results[0]['body'], results[0]['href']
-    except Exception as e:
-        print(f"Web search error: {e}")
-    return None, None
+# def search_web(query: str, max_results: int = 1):
+#     try:
+#         with DDGS() as ddgs:
+#             results = list(ddgs.text(query, max_results=max_results))
+#             if results:
+#                 return results[0]['body'], results[0]['href']
+#     except Exception as e:
+#         print(f"Web search error: {e}")
+#     return None, None
 
 
 def translate_to_english(text: str) -> str:
@@ -157,15 +157,15 @@ def transcribe(audio_path: str) -> str:
         raise
 
 
-def search_web(query: str, max_results: int = 1):
-    try:
-        with DDGS() as ddgs:
-            results = list(ddgs.text(query, max_results=max_results))
-            if results:
-                return results[0]['body'], results[0]['href']
-    except Exception as e:
-        print(f"Web search error: {e}")
-    return None, None
+# def search_web(query: str, max_results: int = 1):
+#     try:
+#         with DDGS() as ddgs:
+#             results = list(ddgs.text(query, max_results=max_results))
+#             if results:
+#                 return results[0]['body'], results[0]['href']
+#     except Exception as e:
+#         print(f"Web search error: {e}")
+#     return None, None
 
 def handle_userinput(user_question: str):
     original_question = user_question  # Save original user input
@@ -192,11 +192,11 @@ def handle_userinput(user_question: str):
     is_web_fallback = False
 
     # 🔁 Web fallback
-    if any(phrase in answer_en.lower() for phrase in ["i apologize", "i'm not sure", "don't know", "unable to find"]):
-        web_answer, web_url = search_web(user_question)
-        if web_answer:
-            answer_en = f"🌐 *This answer is fetched from the internet as it's not in my local data.*\n\n{web_answer}"
-            is_web_fallback = True
+    # if any(phrase in answer_en.lower() for phrase in ["i apologize", "i'm not sure", "don't know", "unable to find"]):
+    #     web_answer, web_url = search_web(user_question)
+    #     if web_answer:
+    #         answer_en = f"🌐 *This answer is fetched from the internet as it's not in my local data.*\n\n{web_answer}"
+    #         is_web_fallback = True
 
     selected_lang = st.session_state.get("selected_language", "English")
 
@@ -227,7 +227,7 @@ def handle_userinput(user_question: str):
         tts = gTTS(answer_translated, lang=lang_code)
         tts.save("audio_Q/response.mp3")
 
-        with open("response.mp3", "rb") as audio_file:
+        with open("audio_Q/response.mp3", "rb") as audio_file:
             audio_bytes = audio_file.read()
             st.audio(audio_bytes, format="audio/mp3")
     except Exception as e:

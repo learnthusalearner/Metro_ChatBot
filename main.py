@@ -313,29 +313,29 @@ def save_audio_to_audio_Q(data: np.ndarray, samplerate: int = 16000) -> str:
     scipy_write(filepath, samplerate, data)
     return filepath
 
-def get_web_fallback():
-    search_tool = DuckDuckGoSearchRun()
+# def get_web_fallback():
+#     search_tool = DuckDuckGoSearchRun()
     
-    prompt = PromptTemplate.from_template("""
-    Based on the web results below, answer the user question truthfully:
+#     prompt = PromptTemplate.from_template("""
+#     Based on the web results below, answer the user question truthfully:
     
-    {context}
+#     {context}
     
-    Question: {question}
-    Answer:
-    """)
+#     Question: {question}
+#     Answer:
+#     """)
     
-    llm_chain = LLMChain(
-        llm=ChatOllama(model="llama3:8b"),
-        prompt=prompt
-    )
+#     llm_chain = LLMChain(
+#         llm=ChatOllama(model="llama3:8b"),
+#         prompt=prompt
+#     )
     
-    retriever = WebResearchRetriever.from_llm_and_tools(
-        llm_chain=llm_chain,
-        tools=[search_tool],
-        num_search_results=2
-    )
-    return retriever
+#     retriever = WebResearchRetriever.from_llm_and_tools(
+#         llm_chain=llm_chain,
+#         tools=[search_tool],
+#         num_search_results=2
+#     )
+#     return retriever
 
 
 def main():
